@@ -33,17 +33,18 @@ public class CategoriesServiceImpl implements CategoriesService {
 
 
     public List<CategoryResponse> getAllCategories() {
-        return categoriesRepository.findAll().stream().map(categoriesMapper::toResponse).toList();
-    }
-
-    public List<CategoryResponse> getAllActiveCategories() {
-        return categoriesRepository.findByActive(true).stream().map(categoriesMapper::toResponse).toList();
+        Users user = getUserBySecurityContextHolder();
+        if (user.getRole() != Role.ROLE_ADMIN) {
+            return categoriesRepository.findByActive(true).stream().map(categoriesMapper::toResponse).toList();
+        } else {
+            return categoriesRepository.findAll().stream().map(categoriesMapper::toResponse).toList();
+        }
     }
 
     public CategoryResponse getCategoryById(int categoryId) {
         Categories category = findById(categoryId);
         if (!category.isActive()) {
-            Users userLogin = getUserBySecurityContext();
+            Users userLogin = getUserBySecurityContextHolder();
             if (userLogin.getRole() != Role.ROLE_ADMIN) {
                 throw new AppException(ErrorCode.NOT_FOUND);
             }
@@ -107,9 +108,14 @@ public class CategoriesServiceImpl implements CategoriesService {
         return categoriesRepository.findByName(name).orElse(null);
     }
 
-    private Users getUserBySecurityContext() {
+    private Users getUserBySecurityContextHolder() {
         String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findById(userId).orElse(null);
+        Users user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+        } else  {
+            return user;
+        }
     }
 
 }

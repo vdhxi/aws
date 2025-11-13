@@ -25,20 +25,9 @@ public class CategoryController {
     CategoriesService categoriesService;
 
     // Endpoint to get all categories (admin only)
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/all")
+    @GetMapping()
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories() {
         var result = categoriesService.getAllCategories();
-        return ResponseEntity.status(HttpStatus.OK).body(
-                ApiResponse.<List<CategoryResponse>>builder()
-                        .data(result)
-                        .build()
-        );
-    }
-
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getActiveCategories() {
-        var result = categoriesService.getAllActiveCategories();
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.<List<CategoryResponse>>builder()
                         .data(result)

@@ -9,8 +9,6 @@ import java.util.List;
 public interface CategoriesService {
     List<CategoryResponse> getAllCategories();
 
-    List<CategoryResponse> getAllActiveCategories();
-
     CategoryResponse getCategoryById(int categoryId);
 
     CategoryResponse createCategory(CategoryCreateRequest request);
