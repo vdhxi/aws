@@ -25,21 +25,9 @@ import java.util.List;
 public class AuthorController {
     AuthorsService authorsService;
 
-    // Endpoint to get all authors (admin only)
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/all")
+    @GetMapping()
     public ResponseEntity<ApiResponse<List<AuthorResponse>>> getAllAuthors() {
         var result = authorsService.getAllAuthors();
-        return ResponseEntity.status(HttpStatus.OK).body(
-                ApiResponse.<List<AuthorResponse>>builder()
-                        .data(result)
-                        .build()
-        );
-    }
-
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<AuthorResponse>>> getActiveAuthors() {
-        var result = authorsService.getAllActiveAuthors();
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.<List<AuthorResponse>>builder()
                         .data(result)

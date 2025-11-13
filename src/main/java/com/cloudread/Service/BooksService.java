@@ -12,8 +12,6 @@ public interface BooksService {
 
     List<BookResponse> getAllBooks();
 
-    List<BookResponse> getAllActiveBook();
-
     List<BookResponse> getAllMyFavorites();
 
     List<BookResponse> getAllByAuthor(int authorId);

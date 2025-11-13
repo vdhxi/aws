@@ -118,4 +118,21 @@ public class AwsS3Service implements com.cloudread.Service.AwsS3Service {
 
         return UUID.randomUUID() + extension;
     }
+
+    public boolean deleteByPublicUrl(String publicUrl) {
+        try {
+            String baseUrl = String.format("https://%s.s3.amazonaws.com/", bucketName);
+
+            if (!publicUrl.startsWith(baseUrl)) {
+                throw new IllegalArgumentException("Invalid public URL for this bucket: " + publicUrl);
+            }
+
+            String objectKey = publicUrl.substring(baseUrl.length());
+
+            deleteFile(objectKey);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
 }

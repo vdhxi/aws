@@ -1,7 +1,6 @@
 package com.cloudread.Entity;
 
 import com.cloudread.Enum.Role;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -32,6 +31,6 @@ public class Users {
 
     Role role;
 
-    List<Object> favorites;
+    List<Book> favorites;
 
 }

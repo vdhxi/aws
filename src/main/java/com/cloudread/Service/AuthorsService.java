@@ -12,8 +12,6 @@ public interface AuthorsService {
 
     List<AuthorResponse> getAllAuthors();
 
-    List<AuthorResponse> getAllActiveAuthors();
-
     AuthorResponse createAuthor(AuthorCreateRequest request, MultipartFile image);
 
     AuthorResponse updateAuthor(AuthorUpdateRequest request, int id, MultipartFile image);

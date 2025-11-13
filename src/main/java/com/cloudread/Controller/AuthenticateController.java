@@ -33,7 +33,6 @@ public class AuthenticateController {
     AuthenticateService authenticateService;
     UserService userService;
 
-
     /** Register */
     // Step 1
     @PostMapping("/register/verify-email-exist")
@@ -141,6 +140,15 @@ public class AuthenticateController {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.<LoginResponse>builder()
                         .data(result)
+                        .build()
+        );
+    }
+
+    @PostMapping("/ping")
+    public ResponseEntity<ApiResponse<Object>> pingTest() {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .message("Pong!")
                         .build()
         );
     }

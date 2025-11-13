@@ -19,6 +19,8 @@ public interface AwsS3Service {
     boolean fileExists(String filename);
 
     GetObjectResponse getFileMetadata(String filename);
+
+    public boolean deleteByPublicUrl(String publicUrl);
 }
 
 

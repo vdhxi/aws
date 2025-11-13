@@ -25,20 +25,9 @@ public class BookController {
     BooksService booksService;
 
     // Endpoint use for admin perform CRUD on books
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/all")
+    @GetMapping()
     public ResponseEntity<ApiResponse<List<BookResponse>>> getAllBooks() {
         var result = booksService.getAllBooks();
-        return ResponseEntity.status(HttpStatus.OK).body(
-                ApiResponse.<List<BookResponse>>builder()
-                        .data(result)
-                        .build()
-        );
-    }
-
-    @GetMapping()
-    public ResponseEntity<ApiResponse<List<BookResponse>>> getAllActiveBooks() {
-        var result = booksService.getAllActiveBook();
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.<List<BookResponse>>builder()
                         .data(result)

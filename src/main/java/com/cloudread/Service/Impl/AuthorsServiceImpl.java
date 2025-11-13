@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -45,36 +46,17 @@ public class AuthorsServiceImpl implements AuthorsService {
             }
         }
 
-        AuthorResponse response = authorsMapper.toResponse(author);
-
-        String imageUrl = awsS3Service.getPublicUrl(author.getImage());
-        response.setImageUrl(imageUrl);
-
-        return response;
+        return authorsMapper.toResponse(author);
     }
 
     public List<AuthorResponse> getAllAuthors() {
-        List<Authors> authors = authorsRepository.findAll();
-        List<AuthorResponse> authorResponseList = new ArrayList<>();
-        authors.forEach(author -> {
-            AuthorResponse response = authorsMapper.toResponse(author);
-            String imageUrl = awsS3Service.getPublicUrl(author.getImage());
-            response.setImageUrl(imageUrl);
-            authorResponseList.add(response);
-        });
-        return authorResponseList;
-    }
+        Users userLogin = getUserBySecurityContextHolder();
 
-    public List<AuthorResponse> getAllActiveAuthors() {
-        List<Authors> authors = authorsRepository.findByActive(true);
-        List<AuthorResponse> authorResponseList = new ArrayList<>();
-        authors.forEach(author -> {
-            AuthorResponse response = authorsMapper.toResponse(author);
-            String imageUrl = awsS3Service.getPublicUrl(author.getImage());
-            response.setImageUrl(imageUrl);
-            authorResponseList.add(response);
-        });
-        return authorResponseList;
+        if (userLogin.getRole() == Role.ROLE_ADMIN) {
+            return authorsRepository.findAll().stream().map(authorsMapper::toResponse).collect(Collectors.toList());
+        } else {
+            return authorsRepository.findByActive(true).stream().map(authorsMapper::toResponse).collect(Collectors.toList());
+        }
     }
 
     public AuthorResponse createAuthor(AuthorCreateRequest request, MultipartFile image) {
@@ -86,7 +68,8 @@ public class AuthorsServiceImpl implements AuthorsService {
 
         try {
             String imageUrl = awsS3Service.uploadFile(image);
-            author.setImage(imageUrl);
+            String url = awsS3Service.getPublicUrl(imageUrl);
+            author.setImage(url);
         } catch (Exception e) {
             throw new AppException(ErrorCode.ERROR_UPLOAD_FILE);
         }
@@ -96,17 +79,11 @@ public class AuthorsServiceImpl implements AuthorsService {
         // Save
         authorsRepository.save(author);
 
-        AuthorResponse response = authorsMapper.toResponse(author);
-
-        String imageUrl = awsS3Service.getPublicUrl(author.getImage());
-        response.setImageUrl(imageUrl);
-
-        return response;
+        return authorsMapper.toResponse(author);
     }
 
     public AuthorResponse updateAuthor(AuthorUpdateRequest request, int id, MultipartFile image) {
         Authors author = findById(id);
-
 
         if (findByName(request.getName()) != null && !author.getName().equalsIgnoreCase(request.getName())) {
             throw new AppException(ErrorCode.AUTHOR_ALREADY_EXISTS);
@@ -116,13 +93,14 @@ public class AuthorsServiceImpl implements AuthorsService {
 
         try {
             if (image != null) {
-                try {
-                    awsS3Service.deleteFile(author.getImage());
-                } catch (Exception e) {
-                    throw  new AppException(ErrorCode.ERROR_DELETE_FILE);
+                boolean result = awsS3Service.deleteByPublicUrl(author.getImage());
+                if (!result) {
+                    throw new AppException(ErrorCode.ERROR_DELETE_FILE);
                 }
+
                 String imageUrl = awsS3Service.uploadFile(image);
-                author.setImage(imageUrl);
+                String url = awsS3Service.getPublicUrl(imageUrl);
+                author.setImage(url);
             }
         } catch (Exception e) {
             throw new AppException(ErrorCode.ERROR_UPLOAD_FILE);
@@ -131,11 +109,7 @@ public class AuthorsServiceImpl implements AuthorsService {
         // Save
         authorsRepository.save(author);
 
-        AuthorResponse response = authorsMapper.toResponse(author);
-        String imageUrl = awsS3Service.getPublicUrl(author.getImage());
-        response.setImageUrl(imageUrl);
-
-        return response;
+        return authorsMapper.toResponse(author);
     }
 
     public void changeStatus(int id) {

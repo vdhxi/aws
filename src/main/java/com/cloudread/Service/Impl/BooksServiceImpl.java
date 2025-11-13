@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,47 +49,16 @@ public class BooksServiceImpl implements BooksService {
             }
         }
 
-        BookResponse response = bookMapper.toResponse(book);
-
-        String imgUrl= awsS3Service.getPublicUrl(book.getCoverImage());
-        response.setCoverUrl(imgUrl);
-
-        String fileUrl= awsS3Service.getPublicUrl(book.getFileName());
-        response.setFileUrl(fileUrl);
-
-        return response;
+        return bookMapper.toResponse(book);
     }
 
     public List<BookResponse> getAllBooks() {
-        List<Book> books = bookRepository.findAll();
-        List<BookResponse> bookResponseList = new ArrayList<>();
-        books.forEach(
-                book -> {
-                    BookResponse response = bookMapper.toResponse(book);
-                    String imgUrl= awsS3Service.getPublicUrl(book.getCoverImage());
-                    String fileUrl= awsS3Service.getPublicUrl(book.getFileName());
-                    response.setCoverUrl(imgUrl);
-                    response.setFileUrl(fileUrl);
-                    bookResponseList.add(response);
-                }
-        );
-        return bookResponseList;
-    }
-
-    public List<BookResponse> getAllActiveBook() {
-        List<Book> books = bookRepository.findByActiveTrue();
-        List<BookResponse> bookResponseList = new ArrayList<>();
-        books.forEach(
-                book -> {
-                    BookResponse response = bookMapper.toResponse(book);
-                    String imgUrl= awsS3Service.getPublicUrl(book.getCoverImage());
-                    String fileUrl= awsS3Service.getPublicUrl(book.getFileName());
-                    response.setCoverUrl(imgUrl);
-                    response.setFileUrl(fileUrl);
-                    bookResponseList.add(response);
-                }
-        );
-        return bookResponseList;
+        Users userLogin = getUserBySecurityContext();
+        if (userLogin == null || userLogin.getRole() == Role.ROLE_ADMIN) {
+            return bookRepository.findAll().stream().map(bookMapper::toResponse).collect(Collectors.toList());
+        } else {
+            return bookRepository.findByActiveTrue().stream().map(bookMapper::toResponse).collect(Collectors.toList());
+        }
     }
     
     public List<BookResponse> getAllMyFavorites() {
@@ -96,29 +66,11 @@ public class BooksServiceImpl implements BooksService {
         if (user == null) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
-        List<Object> favorites = user.getFavorites();
+        List<Book> favorites = user.getFavorites();
         if (favorites == null) {
             favorites = new ArrayList<>();
-        } 
-        
-        if (favorites.isEmpty()) {
-            return new ArrayList<>();
-        } else {
-            List<BookResponse> bookResponseList = new ArrayList<>();
-            favorites.forEach(
-                    bookInList -> {
-                        if (bookInList instanceof Book book) {
-                            BookResponse response = bookMapper.toResponse(book);
-                            String imgUrl= awsS3Service.getPublicUrl(book.getCoverImage());
-                            String fileUrl= awsS3Service.getPublicUrl(book.getFileName());
-                            response.setCoverUrl(imgUrl);
-                            response.setFileUrl(fileUrl);
-                            bookResponseList.add(response);
-                        }
-                    }
-            );
-            return bookResponseList;
         }
+        return favorites.stream().map(bookMapper::toResponse).toList();
     }
 
     public List<BookResponse> getAllByAuthor(int authorId) {
@@ -134,33 +86,11 @@ public class BooksServiceImpl implements BooksService {
             }
         }
 
-        List<BookResponse> bookResponseList = new ArrayList<>();
-        bookRepository.findByAuthor(authors).forEach(
-                book -> {
-                    BookResponse response = bookMapper.toResponse(book);
-                    String imgUrl= awsS3Service.getPublicUrl(book.getCoverImage());
-                    String fileUrl= awsS3Service.getPublicUrl(book.getFileName());
-                    response.setCoverUrl(imgUrl);
-                    response.setFileUrl(fileUrl);
-                    bookResponseList.add(response);
-                }
-        );
-        return bookResponseList;
+        return bookRepository.findByAuthor(authors).stream().map(bookMapper::toResponse).collect(Collectors.toList());
     }
 
     public List<BookResponse> searchByKeyword(String keyword) {
-        List<BookResponse> bookResponseList = new ArrayList<>();
-        bookRepository.findByTitleContainingIgnoreCase(keyword).forEach(
-                book -> {
-                    BookResponse response = bookMapper.toResponse(book);
-                    String imgUrl = awsS3Service.getPublicUrl(book.getCoverImage());
-                    String fileUrl = awsS3Service.getPublicUrl(book.getFileName());
-                    response.setCoverUrl(imgUrl);
-                    response.setFileUrl(fileUrl);
-                    bookResponseList.add(response);
-                }
-        );
-        return bookResponseList;
+        return bookRepository.findByTitleContainingIgnoreCase(keyword).stream().map(bookMapper::toResponse).collect(Collectors.toList());
     }
 
     public List<BookResponse> getAllByCategory(int categoryId) {
@@ -176,48 +106,15 @@ public class BooksServiceImpl implements BooksService {
             }
         }
 
-        List<BookResponse> bookResponseList = new ArrayList<>();
-        bookRepository.findByCategoriesContaining(categories).forEach(
-                book -> {
-                    BookResponse response = bookMapper.toResponse(book);
-                    String imgUrl= awsS3Service.getPublicUrl(book.getCoverImage());
-                    String fileUrl= awsS3Service.getPublicUrl(book.getFileName());
-                    response.setCoverUrl(imgUrl);
-                    response.setFileUrl(fileUrl);
-                    bookResponseList.add(response);
-                }
-        );
-        return bookResponseList;
+        return bookRepository.findByCategoriesContaining(categories).stream().map(bookMapper::toResponse).collect(Collectors.toList());
     }
 
     public List<BookResponse> getNewestBooks() {
-        List<BookResponse> bookResponseList = new ArrayList<>();
-        bookRepository.findByOrderByCreatedAtDesc().forEach(
-                book -> {
-                    BookResponse response = bookMapper.toResponse(book);
-                    String imgUrl= awsS3Service.getPublicUrl(book.getCoverImage());
-                    String fileUrl= awsS3Service.getPublicUrl(book.getFileName());
-                    response.setCoverUrl(imgUrl);
-                    response.setFileUrl(fileUrl);
-                    bookResponseList.add(response);
-                }
-        );
-        return bookResponseList;
+        return bookRepository.findByOrderByCreatedAtDesc().stream().map(bookMapper::toResponse).collect(Collectors.toList());
     }
 
     public List<BookResponse> getMostFavoriteBooks() {
-        List<BookResponse> bookResponseList = new ArrayList<>();
-        bookRepository.findTopByOrderByFavoriteDesc().forEach(
-                book -> {
-                    BookResponse response = bookMapper.toResponse(book);
-                    String imgUrl= awsS3Service.getPublicUrl(book.getCoverImage());
-                    String fileUrl= awsS3Service.getPublicUrl(book.getFileName());
-                    response.setCoverUrl(imgUrl);
-                    response.setFileUrl(fileUrl);
-                    bookResponseList.add(response);
-                }
-        );
-        return bookResponseList;
+        return bookRepository.findTopByOrderByFavoriteDesc().stream().map(bookMapper::toResponse).collect(Collectors.toList());
     }
 
     @Transactional
@@ -249,14 +146,16 @@ public class BooksServiceImpl implements BooksService {
         try {
             if (coverImage != null) {
                 String coverImageName = awsS3Service.uploadFileWithCustomPrefix(coverImage, "image");
-                book.setCoverImage(coverImageName);
+                String url = awsS3Service.getPublicUrl(coverImageName);
+                book.setCoverImage(url);
             } else {
                 errors.add(ErrorCode.MISSING_IMAGE);
             }
 
             if (file != null) {
                 String fileName = awsS3Service.uploadFileWithCustomPrefix(file, "book");
-                book.setFileName(fileName);
+                String fileUrl = awsS3Service.getPublicUrl(fileName);
+                book.setFileName(fileUrl);
             } else {
                 errors.add(ErrorCode.MISSING_DOCUMENT);
             }
@@ -270,15 +169,7 @@ public class BooksServiceImpl implements BooksService {
         if (errors.isEmpty()) {
             // Save
             bookRepository.save(book);
-            BookResponse response = bookMapper.toResponse(book);
-
-            String imgUrl= awsS3Service.getPublicUrl(book.getCoverImage());
-            response.setCoverUrl(imgUrl);
-
-            String fileUrl= awsS3Service.getPublicUrl(book.getFileName());
-            response.setFileUrl(fileUrl);
-
-            return response;
+            return bookMapper.toResponse(book);
         } else {
             throw new AppException(errors);
         }
@@ -312,31 +203,30 @@ public class BooksServiceImpl implements BooksService {
         try {
             if (coverImage != null) {
                 String oldCoverImage = book.getCoverImage();
-                try {
-                    // Delete old file
-                    awsS3Service.deleteFile(oldCoverImage);
-                } catch (Exception e) {
+                // Delete old file
+                boolean result = awsS3Service.deleteByPublicUrl(oldCoverImage);
+                if (!result) {
                     errors.add(ErrorCode.ERROR_DELETE_FILE);
                 }
 
 
                 // Upload new file
                 String coverImageName = awsS3Service.uploadFileWithCustomPrefix(coverImage, "image");
-                book.setCoverImage(coverImageName);
+                String fileUrl = awsS3Service.getPublicUrl(coverImageName);
+                book.setCoverImage(fileUrl);
             }
 
             if (file != null) {
                 String oldFileName = book.getFileName();
-                try {
-                    // Delete old file
-                    awsS3Service.deleteFile(oldFileName);
-                } catch (Exception e) {
+                // Delete old file
+                boolean result = awsS3Service.deleteByPublicUrl(oldFileName);
+                if (!result) {
                     errors.add(ErrorCode.ERROR_DELETE_FILE);
                 }
-
                 // Upload new file
                 String fileName = awsS3Service.uploadFileWithCustomPrefix(file, "book");
-                book.setFileName(fileName);
+                String fileUrl = awsS3Service.getPublicUrl(fileName);
+                book.setFileName(fileUrl);
             }
 
         } catch (IOException e) {
@@ -399,7 +289,7 @@ public class BooksServiceImpl implements BooksService {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-        List<Object> favorites = user.getFavorites();
+        List<Book> favorites = user.getFavorites();
         if (favorites == null) {
             favorites = new ArrayList<>();
         }
