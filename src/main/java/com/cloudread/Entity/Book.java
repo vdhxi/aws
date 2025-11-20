@@ -15,7 +15,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@ToString(exclude = {"categories"})
+@ToString(exclude = {"categories", "users"})
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -57,4 +57,7 @@ public class Book {
     )
     @JsonManagedReference
     List<Categories> categories;
+
+    @ManyToMany(mappedBy = "favorites")
+    List<Users> users;
 }

@@ -11,7 +11,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@ToString
+@ToString(exclude = "favorites")
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -31,6 +31,12 @@ public class Users {
 
     Role role;
 
+    @ManyToMany
+    @JoinTable(
+            name = "UserFavoriteBooks",
+            joinColumns = @JoinColumn(name = "userId"),
+            inverseJoinColumns = @JoinColumn(name = "bookId")
+    )
     List<Book> favorites;
 
 }
