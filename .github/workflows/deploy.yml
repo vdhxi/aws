@@ -33,17 +33,17 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "target/CloudRead-0.0.1-SNAPSHOT.jar"
-          target: "/home/cloudread/app/"
+          target: "/home/ubuntu/app/"
 
-      - name: Restart CloudRead Service
+      - name: Restart CloudRead Backend Service
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "Restarting CloudRead service..."
-            sudo systemctl stop cloudread || true
+            echo "Restarting CloudRead backend..."
+            sudo systemctl stop myapp.service || true
             sudo systemctl daemon-reload
-            sudo systemctl start cloudread
-            sudo systemctl status cloudread --no-pager
+            sudo systemctl start myapp.service
+            sudo systemctl status myapp.service --no-pager
