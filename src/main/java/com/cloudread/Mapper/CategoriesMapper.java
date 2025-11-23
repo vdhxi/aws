@@ -15,12 +15,14 @@ public interface CategoriesMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "active", constant = "true")
     @Mapping(target = "books", ignore = true)
+    @Mapping(target = "user", ignore = true)
     Categories toCategory(CategoryCreateRequest request);
 
     CategoryResponse toResponse(Categories category);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "books", ignore = true)
+    @Mapping(target = "user", ignore = true)
     @Mapping(target = "active", source = "isActive")
     void updateCategory(@MappingTarget Categories category, CategoryUpdateRequest request);
 }

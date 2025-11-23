@@ -11,7 +11,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@ToString(exclude = {"books"})
+@ToString(exclude = {"books", "user"})
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -23,9 +23,14 @@ public class Categories {
     int id;
 
     String name;
+
     boolean active;
 
     @ManyToMany(mappedBy = "categories")
     @JsonBackReference
     List<Book> books;
+
+    @ManyToOne
+    @JsonBackReference
+    Users user;
 }

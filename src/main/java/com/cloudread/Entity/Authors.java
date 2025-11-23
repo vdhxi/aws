@@ -23,8 +23,11 @@ public class Authors {
     int id;
 
     String name;
+
     String description;
+
     String image;
+
     boolean active;
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -55,10 +55,10 @@ openapi:
 
 jwt:
   key: test123456789
-  valid-duration: 3600
+  valid-duration: 3600   # giây
   issuer: "http://localhost:8080"
-  next-step-valid-duration: 600
-  refresh-duration: 86400
+  next-step-valid-duration: 600   # giây
+  refresh-duration: 86400         # giây
 
 aws:
   s3:

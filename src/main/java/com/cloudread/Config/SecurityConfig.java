@@ -31,6 +31,12 @@ public class SecurityConfig {
     @Value("${jwt.key}")
     private String JWT_KEY;
 
+    // Các endpoint public (không cần xác thực)
+    String[] PUBLIC_ENDPOINTS = EndpointConfig.PUBLIC_ENDPOINTS;
+    String[] GET_PUBLIC_ENDPOINTS = EndpointConfig.GET_PUBLIC_ENDPOINTS;
+    String[] POST_PUBLIC_ENDPOINTS = EndpointConfig.POST_PUBLIC_ENDPOINTS;
+    String[] PUT_PUBLIC_ENDPOINTS = EndpointConfig.PUT_PUBLIC_ENDPOINTS;
+
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
@@ -39,12 +45,24 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // ⚠️ Tạm thời cho phép tất cả các request để test (bỏ 401)
                 .authorizeHttpRequests(request -> request
-                        .anyRequest().permitAll()
+                        .requestMatchers(HttpMethod.GET, GET_PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.POST, POST_PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.PUT, PUT_PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.GET).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT).hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
+                        .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .oauth2ResourceServer(oauth2 ->
+                        oauth2.jwt(jwtConfigurer ->
+                                jwtConfigurer.decoder(jwtDecoder())
+                                        .jwtAuthenticationConverter(customJwtAuthenticationConverter()))
+                );
 
         return http.build();
     }

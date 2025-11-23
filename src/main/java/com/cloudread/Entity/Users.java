@@ -23,7 +23,9 @@ public class Users {
     String id;
 
     String username;
+
     String email;
+
     String password;
 
     boolean active;
@@ -33,9 +35,9 @@ public class Users {
 
     @ManyToMany
     @JoinTable(
-        name = "UserFavorites",
-        joinColumns = @JoinColumn(name = "userId"),
-        inverseJoinColumns = @JoinColumn(name = "bookId")
+            name = "UserFavorites",
+            joinColumns = @JoinColumn(name = "userId"),
+            inverseJoinColumns = @JoinColumn(name = "bookId")
     )
     List<Book> favorites;
 }
