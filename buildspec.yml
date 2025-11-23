@@ -1,0 +1,24 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto17
+    commands:
+      - echo "Installing Maven and dependencies..."
+      - mvn -v
+  pre_build:
+    commands:
+      - echo "Starting pre-build phase..."
+      - mvn clean
+  build:
+    commands:
+      - echo "Building the project..."
+      - mvn package -DskipTests
+  post_build:
+    commands:
+      - echo "Build completed successfully!"
+artifacts:
+  files:
+    - target/CloudRead-0.0.1-SNAPSHOT.jar
+  discard-paths: yes
