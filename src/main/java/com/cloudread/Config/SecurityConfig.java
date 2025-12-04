@@ -31,12 +31,33 @@ public class SecurityConfig {
     @Value("${jwt.key}")
     private String JWT_KEY;
 
-    // ==== PUBLIC ENDPOINTS KHÔNG CẦN LOGIN ====
+    // ===============================
+    //         PUBLIC ENDPOINTS
+    // ===============================
     private static final String[] PUBLIC_ENDPOINTS = {
             "/auth/register",
+            "/auth/register/verify-email-exist",
             "/auth/login",
-            "/actuator/health",
-            "/error"
+            "/auth/introspect",
+            "/auth/refresh",
+            "/auth/logout",
+            "/auth/forget-password",
+            "/auth/forget-password/verify-otp",
+            "/auth/reset-password",
+
+            "/book",
+            "/book/**",
+
+            "/author",
+            "/author/**",
+
+            "/category",
+            "/category/**",
+
+            "/error",               // Cho phép Spring xử lý lỗi
+            "/swagger-ui/**",       // Swagger
+            "/v3/api-docs/**",
+            "/swagger-ui.html"
     };
 
     @Bean
@@ -48,30 +69,25 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .authorizeHttpRequests(request -> request
-                        // PUBLIC API → permitAll
+                .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
 
-                        // Các API public bằng GET
-                        .requestMatchers(HttpMethod.GET, "/books/**").permitAll()
-
-                        // Các API cần ADMIN
-                        .requestMatchers(HttpMethod.GET).hasRole("ADMIN")
+                        // ADMIN only
                         .requestMatchers(HttpMethod.POST).hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT).hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
 
-                        // Mặc định các API còn lại yêu cầu JWT
+                        // Các request còn lại yêu cầu JWT
                         .anyRequest().authenticated()
                 )
 
-                // Tắt CSRF trong REST API
+                // REST API không cần CSRF
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // Bật CORS
+                // CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // Bật Resource Server (JWT)
+                // Resource server (JWT)
                 .oauth2ResourceServer(oauth2 ->
                         oauth2.jwt(jwt -> jwt
                                 .decoder(jwtDecoder())
@@ -82,34 +98,44 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // ===============================
+    //               CORS
+    // ===============================
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
+        UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
+        src.registerCorsConfiguration("/**", config);
+        return src;
     }
 
+    // ===============================
+    //            JWT DECODER
+    // ===============================
     @Bean
     JwtDecoder jwtDecoder() {
-        SecretKeySpec keySpec = new SecretKeySpec(JWT_KEY.getBytes(), "HS512");
+        SecretKeySpec key = new SecretKeySpec(JWT_KEY.getBytes(), "HS512");
         return NimbusJwtDecoder
-                .withSecretKey(keySpec)
+                .withSecretKey(key)
                 .macAlgorithm(MacAlgorithm.HS512)
                 .build();
     }
 
+    // ===============================
+    //      ROLE MAPPING (NO PREFIX)
+    // ===============================
     @Bean
     JwtAuthenticationConverter customJwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter converter = new JwtGrantedAuthoritiesConverter();
-        converter.setAuthorityPrefix("");  // Không thêm ROLE_
-        JwtAuthenticationConverter authConverter = new JwtAuthenticationConverter();
-        authConverter.setJwtGrantedAuthoritiesConverter(converter);
-        return authConverter;
+        converter.setAuthorityPrefix(""); // Không thêm ROLE_
+
+        JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
+        jwtConverter.setJwtGrantedAuthoritiesConverter(converter);
+        return jwtConverter;
     }
 }
