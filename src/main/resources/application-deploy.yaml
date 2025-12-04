@@ -41,12 +41,16 @@ spring:
 
 server:
   port: 8080
-  address: 127.0.0.1        # ✅ chỉ cho phép truy cập nội bộ, không public swagger
+  address: 127.0.0.1        # ✅ chỉ cho phép truy cập nội bộ
   forward-headers-strategy: native
+  error:
+    whitelabel:
+      enabled: false
 
 springdoc:
   api-docs:
     enabled: true
+    path: /v3/api-docs
   swagger-ui:
     enabled: true
     disable-swagger-default-url: true
@@ -56,10 +60,15 @@ springdoc:
     doc-expansion: none
     default-consumes-media-type: multipart/form-data
     default-produces-media-type: application/json
-    path: /swagger-ui/
-  # ✅ Swagger chỉ cho phép truy cập khi qua api.cloudread.id.vn
+    path: /swagger-ui.html
   packages-to-scan: com.cloudread
   use-management-port: false
+
+# 🚫 Ngăn Swagger redirect từ "/" sang swagger-ui
+spring:
+  mvc:
+    throw-exception-if-no-handler-found: true
+    static-path-pattern: /static/**
 
 openapi:
   title: CloudRead API

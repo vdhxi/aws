@@ -31,11 +31,13 @@ public class SecurityConfig {
     @Value("${jwt.key}")
     private String JWT_KEY;
 
-    // Các endpoint public (không cần xác thực)
-    String[] PUBLIC_ENDPOINTS = EndpointConfig.PUBLIC_ENDPOINTS;
-    String[] GET_PUBLIC_ENDPOINTS = EndpointConfig.GET_PUBLIC_ENDPOINTS;
-    String[] POST_PUBLIC_ENDPOINTS = EndpointConfig.POST_PUBLIC_ENDPOINTS;
-    String[] PUT_PUBLIC_ENDPOINTS = EndpointConfig.PUT_PUBLIC_ENDPOINTS;
+    // ==== PUBLIC ENDPOINTS KHÔNG CẦN LOGIN ====
+    private static final String[] PUBLIC_ENDPOINTS = {
+            "/auth/register",
+            "/auth/login",
+            "/actuator/health",
+            "/error"
+    };
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -44,24 +46,37 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers(HttpMethod.GET, GET_PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.POST, POST_PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.PUT, PUT_PUBLIC_ENDPOINTS).permitAll()
+                        // PUBLIC API → permitAll
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+
+                        // Các API public bằng GET
+                        .requestMatchers(HttpMethod.GET, "/books/**").permitAll()
+
+                        // Các API cần ADMIN
                         .requestMatchers(HttpMethod.GET).hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST).hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT).hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
+
+                        // Mặc định các API còn lại yêu cầu JWT
                         .anyRequest().authenticated()
                 )
+
+                // Tắt CSRF trong REST API
                 .csrf(AbstractHttpConfigurer::disable)
+
+                // Bật CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // Bật Resource Server (JWT)
                 .oauth2ResourceServer(oauth2 ->
-                        oauth2.jwt(jwtConfigurer ->
-                                jwtConfigurer.decoder(jwtDecoder())
-                                        .jwtAuthenticationConverter(customJwtAuthenticationConverter()))
+                        oauth2.jwt(jwt -> jwt
+                                .decoder(jwtDecoder())
+                                .jwtAuthenticationConverter(customJwtAuthenticationConverter())
+                        )
                 );
 
         return http.build();
@@ -91,10 +106,10 @@ public class SecurityConfig {
 
     @Bean
     JwtAuthenticationConverter customJwtAuthenticationConverter() {
-        JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-        grantedAuthoritiesConverter.setAuthorityPrefix("");
-        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
-        return converter;
+        JwtGrantedAuthoritiesConverter converter = new JwtGrantedAuthoritiesConverter();
+        converter.setAuthorityPrefix("");  // Không thêm ROLE_
+        JwtAuthenticationConverter authConverter = new JwtAuthenticationConverter();
+        authConverter.setJwtGrantedAuthoritiesConverter(converter);
+        return authConverter;
     }
 }
