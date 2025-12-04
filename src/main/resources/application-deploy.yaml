@@ -43,7 +43,6 @@ spring:
     throw-exception-if-no-handler-found: true
     static-path-pattern: /static/**
 
-
 server:
   port: 8080
   address: 127.0.0.1
@@ -51,7 +50,6 @@ server:
   error:
     whitelabel:
       enabled: false
-
 
 springdoc:
   api-docs:
@@ -70,13 +68,11 @@ springdoc:
   packages-to-scan: com.cloudread
   use-management-port: false
 
-
 openapi:
   title: CloudRead API
   version: v1.0.0
   description: Backend API for CloudRead project
   serverUrl: https://api.cloudread.id.vn/
-
 
 jwt:
   key: test123456789
@@ -84,7 +80,6 @@ jwt:
   issuer: "https://api.cloudread.id.vn"
   next-step-valid-duration: 600
   refresh-duration: 86400
-
 
 aws:
   s3:
