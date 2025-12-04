@@ -39,13 +39,19 @@ spring:
       allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
       allowed-headers: "*"
 
+  mvc:
+    throw-exception-if-no-handler-found: true
+    static-path-pattern: /static/**
+
+
 server:
   port: 8080
-  address: 127.0.0.1        # ✅ chỉ cho phép truy cập nội bộ
+  address: 127.0.0.1
   forward-headers-strategy: native
   error:
     whitelabel:
       enabled: false
+
 
 springdoc:
   api-docs:
@@ -64,11 +70,6 @@ springdoc:
   packages-to-scan: com.cloudread
   use-management-port: false
 
-# 🚫 Ngăn Swagger redirect từ "/" sang swagger-ui
-spring:
-  mvc:
-    throw-exception-if-no-handler-found: true
-    static-path-pattern: /static/**
 
 openapi:
   title: CloudRead API
@@ -76,12 +77,14 @@ openapi:
   description: Backend API for CloudRead project
   serverUrl: https://api.cloudread.id.vn/
 
+
 jwt:
   key: test123456789
-  valid-duration: 3600   # giây
+  valid-duration: 3600
   issuer: "https://api.cloudread.id.vn"
-  next-step-valid-duration: 600   # giây
-  refresh-duration: 86400         # giây
+  next-step-valid-duration: 600
+  refresh-duration: 86400
+
 
 aws:
   s3:
