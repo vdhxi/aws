@@ -6,7 +6,12 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class EndpointConfig {
+
+    // GET PUBLIC ENDPOINTS
     public static String[] GET_PUBLIC_ENDPOINTS = {
+            // Healthcheck
+            "/healthz",
+
             // Author endpoints
             "/author",
             "/author/{authorId}",
@@ -25,6 +30,7 @@ public class EndpointConfig {
             "/category/{categoryId}"
     };
 
+    // POST PUBLIC ENDPOINTS
     public static String[] POST_PUBLIC_ENDPOINTS = {
             "/auth/register/verify-email-exist",
             "/auth/register",
@@ -34,14 +40,16 @@ public class EndpointConfig {
             "/auth/logout",
             "/auth/forget-password",
             "/auth/forget-password/verify-otp",
-
     };
 
+    // PUT PUBLIC ENDPOINTS
     public static String[] PUT_PUBLIC_ENDPOINTS = {
             "/auth/reset-password"
     };
 
+    // GENERAL PUBLIC ENDPOINTS
     public static String[] PUBLIC_ENDPOINTS = {
+            "/healthz",          // thêm một lần nữa để GET/HEAD đều được phép
             "/swagger-ui/**",
             "/v3/api-docs/**",
             "/swagger-ui.html"
