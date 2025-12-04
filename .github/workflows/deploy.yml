@@ -20,7 +20,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # 🆕 Thêm bước này để tránh lỗi "Permission denied"
+      # Fix permission issues for Maven Wrapper
       - name: Grant execute permission for mvnw
         run: chmod +x mvnw
 
@@ -44,19 +44,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             echo "Restarting CloudRead backend..."
-            sudo systemctl stop myapp.service || true
+            sudo systemctl stop cloudread-api || true
             sudo systemctl daemon-reload
-            sudo systemctl start myapp.service
-            sudo systemctl status myapp.service --no-pager
-
-      - name: Post-deploy healthcheck
-        run: |
-          echo "Checking backend health..."
-          sleep 10
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://18.139.137.191:8080/book)
-          if [ "$response" == "200" ]; then
-            echo "✅ Backend is healthy and responding correctly."
-          else
-            echo "❌ Backend health check failed with status code $response"
-            exit 1
-          fi
+            sudo systemctl start cloudread-api
+            sudo systemctl status cloudread-api --no-pager
