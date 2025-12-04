@@ -9,9 +9,6 @@ public class EndpointConfig {
 
     // GET PUBLIC ENDPOINTS
     public static String[] GET_PUBLIC_ENDPOINTS = {
-            // Healthcheck
-            "/healthz",
-
             // Author endpoints
             "/author",
             "/author/{authorId}",
@@ -39,7 +36,7 @@ public class EndpointConfig {
             "/auth/refresh",
             "/auth/logout",
             "/auth/forget-password",
-            "/auth/forget-password/verify-otp",
+            "/auth/forget-password/verify-otp"
     };
 
     // PUT PUBLIC ENDPOINTS
@@ -47,9 +44,9 @@ public class EndpointConfig {
             "/auth/reset-password"
     };
 
-    // GENERAL PUBLIC ENDPOINTS
+    // GENERAL PUBLIC ENDPOINTS (không giới hạn METHOD)
     public static String[] PUBLIC_ENDPOINTS = {
-            "/healthz",          // thêm một lần nữa để GET/HEAD đều được phép
+            "/healthz",          // Healthcheck — cho phép mọi method
             "/swagger-ui/**",
             "/v3/api-docs/**",
             "/swagger-ui.html"
