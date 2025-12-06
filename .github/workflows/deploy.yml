@@ -26,6 +26,7 @@ jobs:
       - name: Build with Maven
         run: ./mvnw clean package -DskipTests
 
+      # Upload JAR file lên EC2
       - name: Upload JAR to EC2
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -33,8 +34,9 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "target/CloudRead-0.0.1-SNAPSHOT.jar"
-          target: "/home/ubuntu/app/"   # ← Sửa tại đây
+          target: "/home/ubuntu/app/"
 
+      # Fix quyền file để systemd đọc được
       - name: Fix file permissions
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -44,6 +46,7 @@ jobs:
           script: |
             sudo chmod 644 /home/ubuntu/app/CloudRead-0.0.1-SNAPSHOT.jar
 
+      # Restart systemd service
       - name: Restart cloudread.service
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -52,6 +55,5 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             sudo systemctl daemon-reload
-            sudo systemctl stop cloudread.service || true
-            sudo systemctl start cloudread.service
+            sudo systemctl restart cloudread.service
             sudo systemctl status cloudread.service --no-pager
