@@ -32,7 +32,7 @@ public class SecurityConfig {
     private String JWT_KEY;
 
     // ===============================
-    //         PUBLIC ENDPOINTS
+    //        PUBLIC ENDPOINTS
     // ===============================
     private static final String[] PUBLIC_ENDPOINTS = {
             "/auth/register",
@@ -54,8 +54,13 @@ public class SecurityConfig {
             "/category",
             "/category/**",
 
+            // ⭐ Thêm endpoint public mới
+            "/api/v1/public/**",
+            "/api/v1/health",
+            "/health",
+
             "/error",               // Cho phép Spring xử lý lỗi
-            "/swagger-ui/**",       // Swagger
+            "/swagger-ui/**",       // Swagger UI
             "/v3/api-docs/**",
             "/swagger-ui.html"
     };
@@ -77,17 +82,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT).hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
 
-                        // Các request còn lại yêu cầu JWT
+                        // Các API còn lại phải login
                         .anyRequest().authenticated()
                 )
 
-                // REST API không cần CSRF
                 .csrf(AbstractHttpConfigurer::disable)
-
-                // CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // Resource server (JWT)
                 .oauth2ResourceServer(oauth2 ->
                         oauth2.jwt(jwt -> jwt
                                 .decoder(jwtDecoder())
