@@ -32,80 +32,100 @@ public class SecurityConfig {
     private String JWT_KEY;
 
     // ===============================
-    //        PUBLIC ENDPOINTS
+    // PUBLIC ENDPOINTS (FULL & EXACT)
     // ===============================
     private static final String[] PUBLIC_ENDPOINTS = {
-            "/auth/register",
-            "/auth/register/verify-email-exist",
-            "/auth/login",
-            "/auth/introspect",
-            "/auth/refresh",
-            "/auth/logout",
-            "/auth/forget-password",
-            "/auth/forget-password/verify-otp",
-            "/auth/reset-password",
 
-            "/book",
-            "/book/**",
+            // AUTH
+            "/api/v1/auth/register",
+            "/api/v1/auth/register/verify-email-exist",
+            "/api/v1/auth/login",
+            "/api/v1/auth/introspect",
+            "/api/v1/auth/refresh",
+            "/api/v1/auth/logout",
+            "/api/v1/auth/forget-password",
+            "/api/v1/auth/forget-password/verify-otp",
+            "/api/v1/auth/reset-password",
 
-            "/author",
-            "/author/**",
+            // BOOK
+            "/api/v1/book",
+            "/api/v1/book/**",
 
-            "/category",
-            "/category/**",
+            // AUTHOR
+            "/api/v1/author",
+            "/api/v1/author/**",
 
-            // ⭐ Thêm endpoint public mới
+            // CATEGORY
+            "/api/v1/category",
+            "/api/v1/category/**",
+
+            // PUBLIC TEST
             "/api/v1/public/**",
+
+            // HEALTH CHECK
             "/api/v1/health",
             "/health",
 
-            "/error",               // Cho phép Spring xử lý lỗi
-            "/swagger-ui/**",       // Swagger UI
+            // Swagger
+            "/swagger-ui/**",
             "/v3/api-docs/**",
-            "/swagger-ui.html"
+            "/swagger-ui.html",
+
+            // Error handler
+            "/error"
     };
 
+    // ==========================
+    // PASSWORD ENCODER
+    // ==========================
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
     }
 
+    // ==========================
+    // SECURITY FILTER CHAIN
+    // ==========================
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
 
-                        // ADMIN only
-                        .requestMatchers(HttpMethod.POST).hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT).hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
+                    // ADMIN ONLY ENDPOINTS
+                    .requestMatchers(HttpMethod.POST).hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT).hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
 
-                        // Các API còn lại phải login
-                        .anyRequest().authenticated()
-                )
+                    // All others require JWT
+                    .anyRequest().authenticated()
+            )
 
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            // Disable CSRF (REST API)
+            .csrf(AbstractHttpConfigurer::disable)
 
-                .oauth2ResourceServer(oauth2 ->
-                        oauth2.jwt(jwt -> jwt
-                                .decoder(jwtDecoder())
-                                .jwtAuthenticationConverter(customJwtAuthenticationConverter())
-                        )
-                );
+            // Enable CORS
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+            // JWT Resource server
+            .oauth2ResourceServer(oauth2 ->
+                    oauth2.jwt(jwt -> jwt
+                            .decoder(jwtDecoder())
+                            .jwtAuthenticationConverter(customJwtAuthenticationConverter())
+                    )
+            );
 
         return http.build();
     }
 
-    // ===============================
-    //               CORS
-    // ===============================
+    // ==========================
+    // CORS CONFIG
+    // ==========================
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("*"));
+        config.setAllowedOrigins(List.of("*")); // Allow FE everywhere
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -115,9 +135,9 @@ public class SecurityConfig {
         return src;
     }
 
-    // ===============================
-    //            JWT DECODER
-    // ===============================
+    // ==========================
+    // JWT DECODER
+    // ==========================
     @Bean
     JwtDecoder jwtDecoder() {
         SecretKeySpec key = new SecretKeySpec(JWT_KEY.getBytes(), "HS512");
@@ -127,13 +147,13 @@ public class SecurityConfig {
                 .build();
     }
 
-    // ===============================
-    //      ROLE MAPPING (NO PREFIX)
-    // ===============================
+    // ==========================
+    // REMOVE ROLE_ PREFIX
+    // ==========================
     @Bean
     JwtAuthenticationConverter customJwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter converter = new JwtGrantedAuthoritiesConverter();
-        converter.setAuthorityPrefix(""); // Không thêm ROLE_
+        converter.setAuthorityPrefix(""); // Do not add ROLE_
 
         JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
         jwtConverter.setJwtGrantedAuthoritiesConverter(converter);
