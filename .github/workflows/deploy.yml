@@ -33,17 +33,16 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "target/CloudRead-0.0.1-SNAPSHOT.jar"
-          target: "/home/ubuntu/app/"       # CHỈ THƯ MỤC, KHÔNG ĐƯỢC ĐỔI TÊN
+          target: "/home/ubuntu/app/"   # ← Sửa tại đây
 
-      - name: Fix file permissions + rename JAR
+      - name: Fix file permissions
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            mv /home/ubuntu/app/CloudRead-0.0.1-SNAPSHOT.jar /home/ubuntu/app/CloudRead.jar
-            sudo chmod 644 /home/ubuntu/app/CloudRead.jar
+            sudo chmod 644 /home/ubuntu/app/CloudRead-0.0.1-SNAPSHOT.jar
 
       - name: Restart cloudread.service
         uses: appleboy/ssh-action@v1.0.3
@@ -52,14 +51,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "Reloading systemd..."
             sudo systemctl daemon-reload
-
-            echo "Stopping old service..."
             sudo systemctl stop cloudread.service || true
-
-            echo "Starting service..."
             sudo systemctl start cloudread.service
-
-            echo "Service status:"
             sudo systemctl status cloudread.service --no-pager
